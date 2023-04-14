@@ -1,0 +1,49 @@
+<?php
+/**
+ * @file
+ * Installation file for miniOrange OAuth Login Module.
+ */
+
+use Drupal\oauth_login_oauth2\feedback;
+use Drupal\oauth_login_oauth2\Utilities;
+
+/**
+ * hook_uninstall
+ * Configure variables are cleared when module is uninstalled.
+ **/
+
+function oauth_login_oauth2_uninstall() {
+    $status = \Drupal::config('oauth_login_oauth2.settings')->get('miniorange_oauth_uninstall_status');
+    $mo_config = \Drupal::configFactory()->getEditable('oauth_login_oauth2.settings');
+    if(!( $status == 1)){
+        $mo_config->set('miniorange_oauth_client_feedback',1)->save();
+    }
+
+    if(\Drupal::config('oauth_login_oauth2.settings')->get('miniorange_oauth_client_feedback') == '1')
+    {
+        $drupal_is_cli = Utilities::drupal_is_cli();
+        $mo_config->clear('miniorange_oauth_client_feedback')->save();
+        // Checking if the site has an active internet connection
+        $connected = fopen("http://login.xecurify.com:80/","r");
+        if(!$drupal_is_cli && $connected != FALSE)
+        {
+            feedback::miniorange_oauth_client_feedback();
+            fclose($connected);
+        }
+    }
+    $mo_config->clear('miniorange_oauth_client_attr_list_from_server')->save();
+}
+
+/**
+ * Implements hook_install().
+ */
+function oauth_login_oauth2_install() {
+    drupal_flush_all_caches();
+    global $base_url;
+    $redirect_url = $base_url .'/mo_login';
+    $mo_config = \Drupal::configFactory()->getEditable('oauth_login_oauth2.settings');
+    $mo_config->set('miniorange_oauth_client_feedback', '1')
+        ->set('miniorange_auth_client_callback_uri', $redirect_url)
+        ->set('miniorange_oauth_uninstall_status',0)
+        ->save();
+}
