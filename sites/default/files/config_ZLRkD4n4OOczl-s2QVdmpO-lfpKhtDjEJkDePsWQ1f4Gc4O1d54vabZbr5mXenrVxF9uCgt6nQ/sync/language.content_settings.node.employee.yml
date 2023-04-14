@@ -1,0 +1,16 @@
+uuid: 802e6664-9499-4230-bf75-75de108624f7
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.employee
+  module:
+    - content_translation
+third_party_settings:
+  content_translation:
+    enabled: true
+id: node.employee
+target_entity_type_id: node
+target_bundle: employee
+default_langcode: site_default
+language_alterable: false
